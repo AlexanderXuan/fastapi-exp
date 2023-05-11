@@ -2,11 +2,11 @@
 Author: AlexanderXuan xuanxiaoguang@gmail.com
 Date: 2023-05-07 19:54:06
 LastEditors: AlexXuan xuanxiaoguang@gmail.com
-LastEditTime: 2023-05-10 08:57:47
+LastEditTime: 2023-05-11 08:20:08
 FilePath: /fastapi-exp/tutorial/chapter04.py
 '''
 from typing import Optional, List, Union
-from fastapi import APIRouter, status, Form, File, UploadFile
+from fastapi import APIRouter, status, Form, File, UploadFile, HTTPException
 from pydantic import BaseModel, EmailStr
 
 app04 = APIRouter()
@@ -125,3 +125,22 @@ async def upload_files(files: List[UploadFile] = File(...)):    # 上传单个�
 async def path_operation_configuration(user: UserIn):
     """Path Operation Configuration 路径操作配置"""
     return user.dict()
+
+
+"""【见run.py】FastAPI应用的常见配置项"""
+
+
+"""Handling Errors 错误处理"""
+@app04.get("/http_exception")
+async def http_exception(city: str):
+    """HTTPException"""
+    if city != "Beijing":
+        raise HTTPException(status_code=404, detail="City not found", headers={"X-Error": "There goes my error"})
+    return {"city": city}
+
+@app04.get("/http_exception/{city_id}")
+async def override_http_exception(city_id: int):
+    """HTTPException"""
+    if city_id == 1:
+        raise HTTPException(status_code=418, detail="Nope, I don't like 1")
+    return {"city_id": city_id}
