@@ -2,7 +2,7 @@
 Author: AlexanderXuan xuanxiaoguang@gmail.com
 Date: 2023-05-07 19:54:09
 LastEditors: AlexXuan xuanxiaoguang@gmail.com
-LastEditTime: 2023-05-11 08:47:24
+LastEditTime: 2023-05-12 07:30:29
 FilePath: /fastapi-exp/tutorial/chapter05.py
 '''
 from typing import Optional, List, Union
@@ -75,3 +75,39 @@ async def verify_key(x_key: str = Header(...)):
 @app05.get("/dependencies_in_path_operations_decorators", dependencies=[Depends(verify_token), Depends(verify_key)])
 async def dependencies_in_path_operations_decorators():
     return [{"user": "user01"}, {"user": "user02"}]
+
+
+"""Global Dependencies 全局依赖"""
+# app05 = APIRouter(dependencies=[Depends(verify_token), Depends(verify_key)])
+
+"""Dependencies with yield 依赖项与yield"""
+# python3.7以上才支持
+# 伪代码：
+async def get_db():
+    db = "db_connection"
+    try:
+        yield db
+    finally:
+        db.endswith("db_close")
+
+async def dependency_a():
+    dep_a = "generate_dep_a"
+    try:
+        yield dep_a
+    finally:
+        dep_a.endswith("db_close")
+
+async def dependency_b(dep_a=Depends(dependency_a)):
+    dep_b = f"generate_dep_b"
+    try:
+        yield dep_b
+    finally:
+        dep_b.endswith(dep_a)
+
+async def dependency_c(dep_b=Depends(dependency_b)):
+    dep_c = f"generate_dep_b"
+    try:
+        yield dep_c
+    finally:
+        dep_c.endswith(dep_b)
+

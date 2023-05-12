@@ -3,3 +3,6 @@ uvicorn
 sqlalchemy
 pydantic[email]
 python-multipart
+passlib
+python-jose
+bcrypt
