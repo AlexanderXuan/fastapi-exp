@@ -2,14 +2,17 @@
 Author: AlexanderXuan xuanxiaoguang@gmail.com
 Date: 2023-05-07 19:53:37
 LastEditors: AlexXuan xuanxiaoguang@gmail.com
-LastEditTime: 2023-05-12 07:58:22
+LastEditTime: 2023-05-13 22:46:17
 FilePath: /fastapi-exp/run.py
 '''
+import time
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
-from tutorial import app03, app04, app05, app06
+from tutorial import app03, app04, app05, app06, app07, app08
+from coronavirus import application
 
 # from fastapi.exceptions import RequestValidationError
 # from fastapi.responses import PlainTextResponse
@@ -25,8 +28,8 @@ app = FastAPI(
     # dependencies=[Depends(verify_token), Depends(verify_key)]
 )
 
-# mount表示将某个目录下一个完全独立的应用挂在过来，这个不会在API交互文档中显示
-app.mount(path='/staticstatic', app=StaticFiles(directory='./coronavirus/static'), name='static') # 静态文件不要挂载到APIRouter中
+# mount表示将某个目录下一个完全独立的应用挂载过来，这个不会在API交互文档中显示
+app.mount(path='/static', app=StaticFiles(directory='./coronavirus/static'), name='static')  # .mount()不要在分路由APIRouter().mount()调用，模板会报错
 
 # @app.exception_handler(StarletteHTTPException)  # 重写HTTPException异常处理
 # async def http_exception_handler(request, exc):
@@ -36,11 +39,33 @@ app.mount(path='/staticstatic', app=StaticFiles(directory='./coronavirus/static'
 # async def validation_exception_handler(request, exc):
 #     return PlainTextResponse(str(exc), status_code=400)
 
+@app.middleware('http')
+async def add_process_time_header(request: Request, call_next): # call_next 将接收request请求作为参数
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    response.headers['X-Process-Time'] = str(process_time)  # 添加自定义的以X-开头的响应头
+    return response
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1",
+        "http://127.0.0.1:8080"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(app03, prefix="/chapter03", tags=["第三章 请求参数和验证"])
 app.include_router(app04, prefix="/chapter04", tags=["第四章 响应处理和FastAPI配置"])
 app.include_router(app05, prefix="/chapter05", tags=["第五章 FastAPI依赖注入系统"])
 app.include_router(app06, prefix="/chapter06", tags=["第六章 安全认证和授权"])
+app.include_router(app07, prefix="/chapter07", tags=["第七章 FastAPI的数据库操作和多应用的目录结构设计"])
+app.include_router(app08, prefix="/chapter08", tags=["第八章 中间件、CORS、后台任务、测试用例"])
+
+app.include_router(application, prefix="/coronavirus", tags=["新冠病毒跟踪器API"])
 
 if __name__ == "__main__":
     uvicorn.run('run:app', host="0.0.0.0", port=8000, reload=True, workers=1)

@@ -6,3 +6,6 @@ python-multipart
 passlib
 python-jose
 bcrypt
+Jinjia2
+pytest
+httpx
