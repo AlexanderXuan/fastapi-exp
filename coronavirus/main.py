@@ -2,7 +2,7 @@
 Author: AlexXuan xuanxiaoguang@gmail.com
 Date: 2023-05-13 14:59:50
 LastEditors: AlexXuan xuanxiaoguang@gmail.com
-LastEditTime: 2023-05-13 22:21:28
+LastEditTime: 2023-05-13 23:46:19
 FilePath: /fastapi-exp/coronavirus/main.py
 '''
 import requests
@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from pydantic import HttpUrl
 
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 from coronavirus import schemas, crud
 from coronavirus.database import SessionLocal, engine, Base
 from coronavirus.models import City, Data
@@ -105,3 +106,9 @@ def coronavirus(request: Request, city: str = None, skip: int = 0, limit: int = 
                                                     'data': data, 
                                                     "sync_data_url": "/coronavirus/sync_coronavirus_data/jhu"
                                                     })
+
+# a demo for directly return html file, not use jinja2 templates
+# @application.get('/')
+# def index():
+#     html_file = open('./coronavirus/templates/home.html', 'r', encoding='utf-8').read()
+#     return html_file
